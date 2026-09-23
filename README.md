@@ -125,6 +125,7 @@ features](https://doc.rust-lang.org/cargo/reference/manifest.html#the-features-s
 * `bundled-sqlcipher-vendored-openssl` allows using bundled-sqlcipher with a vendored version of OpenSSL (via the `openssl-sys` crate) as the crypto provider.
   - As the name implies this depends on the `bundled-sqlcipher` feature, and automatically turns it on.
   - If turned on, this uses the [`openssl-sys`](https://crates.io/crates/openssl-sys) crate, with the `vendored` feature enabled in order to build and bundle the OpenSSL crypto library.
+* `bundled-sqlite3mc` compiles [SQLite3 Multiple Ciphers](https://github.com/utelle/SQLite3MultipleCiphers) from the [`sqlite3mc-src`](https://crates.io/crates/sqlite3mc-src) crate with `bundled`'s options, in place of SQLite. It carries its own ciphers and links no crypto library, and it cannot be combined with `bundled-sqlcipher` or `sqlcipher`.
 * `hooks` for [Commit, Rollback](http://sqlite.org/c3ref/commit_hook.html) and [Data Change](http://sqlite.org/c3ref/update_hook.html) notification callbacks.
 * `preupdate_hook` for [preupdate](https://sqlite.org/c3ref/preupdate_blobwrite.html) notification callbacks. (Implies `hooks`.)
 * `unlock_notify` for [Unlock](https://sqlite.org/unlock_notify.html) notification.
@@ -252,6 +253,8 @@ Rusqlite and libsqlite3-sys are available under the MIT license. See the LICENSE
 Depending on the set of enabled cargo `features`, rusqlite and libsqlite3-sys will also bundle other libraries, which have their own licensing terms:
 
 - If `--features=bundled-sqlcipher` is enabled, the vendored source of [SQLcipher](https://github.com/sqlcipher/sqlcipher) will be compiled and statically linked in. SQLcipher is distributed under a BSD-style license, as described [here](libsqlite3-sys/sqlcipher/LICENSE).
+
+- If `--features=bundled-sqlite3mc` is enabled, the source of [SQLite3 Multiple Ciphers](https://github.com/utelle/SQLite3MultipleCiphers) from the [`sqlite3mc-src`](https://crates.io/crates/sqlite3mc-src) crate will be compiled and statically linked in. It is distributed under the MIT license, with public-domain parts and Argon2 under CC0-1.0 or Apache-2.0.
 
 - If `--features=bundled` is enabled, the vendored source of SQLite will be compiled and linked in. SQLite is in the public domain, as described [here](https://www.sqlite.org/copyright.html).
 

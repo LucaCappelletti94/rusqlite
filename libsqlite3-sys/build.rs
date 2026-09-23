@@ -33,6 +33,21 @@ compile_error!(
     "feature \"loadable_extension\" and feature \"preupdate_hook\" cannot be enabled at the same time"
 );
 
+#[cfg(all(feature = "bundled-sqlcipher", feature = "bundled-sqlite3mc"))]
+compile_error!(
+    "feature \"bundled-sqlcipher\" and feature \"bundled-sqlite3mc\" cannot be enabled at the same time"
+);
+
+#[cfg(all(feature = "sqlcipher", feature = "bundled-sqlite3mc"))]
+compile_error!(
+    "feature \"sqlcipher\" and feature \"bundled-sqlite3mc\" cannot be enabled at the same time"
+);
+
+#[cfg(all(feature = "loadable_extension", feature = "bundled-sqlite3mc"))]
+compile_error!(
+    "feature \"loadable_extension\" and feature \"bundled-sqlite3mc\" cannot be enabled at the same time"
+);
+
 /// Tells whether we're building for Windows. This is more suitable than a plain
 /// `cfg!(windows)`, since the latter does not properly handle cross-compilation
 ///
@@ -79,9 +94,12 @@ fn main() {
     }
 
     println!("cargo:rerun-if-env-changed=LIBSQLITE3_SYS_USE_PKG_CONFIG");
-    if env::var_os("LIBSQLITE3_SYS_USE_PKG_CONFIG").is_some_and(|s| s != "0")
-        || cfg!(feature = "loadable_extension")
-    {
+    let use_pkg_config = env::var_os("LIBSQLITE3_SYS_USE_PKG_CONFIG").is_some_and(|s| s != "0");
+    assert!(
+        !(use_pkg_config && cfg!(feature = "bundled-sqlite3mc")),
+        "LIBSQLITE3_SYS_USE_PKG_CONFIG cannot be combined with feature \"bundled-sqlite3mc\""
+    );
+    if use_pkg_config || cfg!(feature = "loadable_extension") {
         build_linked::main(&out_dir, &out_path);
     } else if cfg!(all(
         feature = "sqlcipher",
@@ -138,21 +156,35 @@ mod build_bundled {
             "This module should not be used: we're not on Windows and the bundled feature has not been enabled"
         );
 
+        #[cfg(feature = "bundled-sqlite3mc")]
+        let (include_dir, source) = (
+            sqlite3mc_include(out_dir),
+            sqlite3mc_src::source_dir().join(sqlite3mc_src::SOURCE_FILE),
+        );
+        #[cfg(not(feature = "bundled-sqlite3mc"))]
+        let (include_dir, source) = (
+            PathBuf::from(format!("{}/{lib_name}", env!("CARGO_MANIFEST_DIR"))),
+            PathBuf::from(format!("{lib_name}/sqlite3.c")),
+        );
         cfg_select! {
             feature = "buildtime_bindgen" => {
                 use super::{HeaderLocation, bindings};
-                let header = HeaderLocation::FromPath(lib_name.to_owned());
-                bindings::write_to_out_dir(header, out_path);
+                let header_dir = if cfg!(feature = "bundled-sqlite3mc") {
+                    include_dir.to_string_lossy().into_owned()
+                } else {
+                    lib_name.to_owned()
+                };
+                bindings::write_to_out_dir(HeaderLocation::FromPath(header_dir), out_path);
             }
             _ => {
                 super::copy_bindings(lib_name, "bindgen_bundled_version", out_path);
             }
         }
-        println!("cargo:include={}/{lib_name}", env!("CARGO_MANIFEST_DIR"));
-        println!("cargo:rerun-if-changed={lib_name}/sqlite3.c");
+        println!("cargo:include={}", include_dir.display());
+        println!("cargo:rerun-if-changed={}", source.display());
         println!("cargo:rerun-if-changed=sqlite3/wasm32-wasi-vfs.c");
         let mut cfg = cc::Build::new();
-        cfg.file(format!("{lib_name}/sqlite3.c"))
+        cfg.file(source)
             .flag("-DSQLITE_CORE")
             .flag("-DSQLITE_DEFAULT_FOREIGN_KEYS=1")
             .flag("-DSQLITE_ENABLE_API_ARMOR")
@@ -341,6 +373,24 @@ mod build_bundled {
         println!("cargo:lib_dir={out_dir}");
     }
 
+    /// Makes `sqlite3.h` and `sqlite3ext.h` reachable for bindgen and for dependents, since the
+    /// amalgamation header keeps its upstream name.
+    #[cfg(feature = "bundled-sqlite3mc")]
+    fn sqlite3mc_include(out_dir: &str) -> PathBuf {
+        let dir = Path::new(out_dir).join("sqlite3mc-include");
+        std::fs::create_dir_all(&dir).expect("Could not create the SQLite3MC include directory");
+        let header = sqlite3mc_src::source_dir().join(sqlite3mc_src::HEADER_FILE);
+        let header = header.to_string_lossy().replace('\\', "/");
+        std::fs::write(dir.join("sqlite3.h"), format!("#include \"{header}\"\n"))
+            .expect("Could not write the SQLite3MC sqlite3.h");
+        std::fs::copy(
+            sqlite3mc_src::source_dir().join(sqlite3mc_src::EXTENSION_HEADER_FILE),
+            dir.join("sqlite3ext.h"),
+        )
+        .expect("Could not copy sqlite3ext.h");
+        dir
+    }
+
     fn env(name: &str) -> Option<OsString> {
         let prefix = env::var("TARGET").unwrap().to_uppercase().replace('-', "_");
         let prefixed = format!("{prefix}_{name}");
@@ -369,6 +419,8 @@ fn env_prefix() -> &'static str {
 fn lib_name() -> &'static str {
     if cfg!(any(feature = "sqlcipher", feature = "bundled-sqlcipher")) {
         "sqlcipher"
+    } else if cfg!(feature = "bundled-sqlite3mc") {
+        "sqlite3mc"
     } else {
         "sqlite3"
     }

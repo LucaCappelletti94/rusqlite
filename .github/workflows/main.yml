@@ -132,6 +132,36 @@ jobs:
       - run: cargo test --features 'bundled-full session buildtime_bindgen preupdate_hook' --all-targets --workspace --verbose
       - run: cargo test --features 'bundled-full session buildtime_bindgen preupdate_hook' --doc --workspace --verbose
 
+  test-sqlite3mc-bundled:
+    name: Test ${{ matrix.os }} (bundled SQLite3 Multiple Ciphers)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: hecrj/setup-rust-action@v2
+      - uses: Swatinem/rust-cache@v2
+        with: { shared-key: fullBuild }
+
+      - run: cargo test --features 'modern-full bundled-sqlite3mc' --workspace --all-targets --verbose
+      - run: cargo test --features 'modern-full bundled-sqlite3mc' --workspace --doc --verbose
+
+      - name: No OpenSSL compiled into or required by the SQLite3MC archive
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          found=0
+          for archive in $(find target -name libsqlite3mc.a); do
+            found=1
+            nm --extern-only --defined-only --format=just-symbols "$archive" | grep -qx sqlite3mc_version
+            if nm --extern-only --format=just-symbols "$archive" | grep -E '^(EVP_|OPENSSL_|CRYPTO_|PKCS5_|RAND_|SSL_|ERR_|HMAC_|MD5_|SHA1_|SHA256_|SHA512_|AES_|BN_|BIO_)'; then
+              exit 1
+            fi
+          done
+          test "$found" = 1
+
   test-sqlite-wasm:
     name: Test wasm32-unknown-unknown
     runs-on: ubuntu-latest
