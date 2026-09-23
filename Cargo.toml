@@ -72,6 +72,8 @@ i128_blob = []
 sqlcipher = ["libsqlite3-sys?/sqlcipher"]
 # SQLITE_ENABLE_UNLOCK_NOTIFY
 unlock_notify = ["libsqlite3-sys?/unlock_notify"]
+# SQLITE_OMIT_LOAD_EXTENSION in bundled builds
+omit_load_extension = ["libsqlite3-sys?/omit_load_extension"]
 # if not SQLITE_OMIT_VIRTUALTABLE
 # sqlite3_vtab
 vtab = []
