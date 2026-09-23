@@ -162,7 +162,11 @@ mod build_bundled {
             .flag("-DSQLITE_ENABLE_FTS3_PARENTHESIS")
             .flag("-DSQLITE_ENABLE_FTS5")
             .flag("-DSQLITE_ENABLE_JSON1")
-            .flag("-DSQLITE_ENABLE_LOAD_EXTENSION=1")
+            .flag(if cfg!(feature = "omit_load_extension") {
+                "-DSQLITE_OMIT_LOAD_EXTENSION"
+            } else {
+                "-DSQLITE_ENABLE_LOAD_EXTENSION=1"
+            })
             .flag("-DSQLITE_ENABLE_RTREE")
             .flag("-DSQLITE_ENABLE_STAT4")
             .flag("-DSQLITE_SOUNDEX")
@@ -423,6 +427,11 @@ mod build_linked {
     use std::path::Path;
 
     pub fn main(_out_dir: &str, out_path: &Path) {
+        if cfg!(feature = "omit_load_extension") {
+            panic!(
+                "feature \"omit_load_extension\" only applies when SQLite is compiled from source, not to a linked or system SQLite"
+            );
+        }
         let header = find_sqlite();
         if (cfg!(any(
             feature = "bundled_bindings",

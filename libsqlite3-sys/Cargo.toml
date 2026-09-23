@@ -36,6 +36,8 @@ bundled_bindings = []
 loadable_extension = ["prettyplease", "quote", "syn"]
 # SQLITE_ENABLE_UNLOCK_NOTIFY
 unlock_notify = []
+# SQLITE_OMIT_LOAD_EXTENSION in bundled builds
+omit_load_extension = []
 # SQLITE_ENABLE_COLUMN_METADATA
 column_metadata = []
 # SQLITE_ENABLE_PREUPDATE_HOOK
