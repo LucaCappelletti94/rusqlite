@@ -74,6 +74,7 @@ jobs:
 
       - run: cargo test --features 'bundled-full session buildtime_bindgen fallible_uint preupdate_hook' --all-targets --workspace --verbose
       - run: cargo test --features 'bundled-full session buildtime_bindgen fallible_uint preupdate_hook' --doc --workspace --verbose
+      - run: cargo test --features 'bundled omit_load_extension' --workspace --all-targets --verbose
 
       - name: loadable extension
         run: |

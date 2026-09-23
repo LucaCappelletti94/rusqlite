@@ -164,6 +164,11 @@ compile_error!(
     "feature \"loadable_extension\" and feature \"load_extension\" cannot be enabled at the same time"
 );
 
+#[cfg(all(feature = "omit_load_extension", feature = "load_extension"))]
+compile_error!(
+    "feature \"omit_load_extension\" and feature \"load_extension\" cannot be enabled at the same time"
+);
+
 // Number of cached prepared statements we'll hold on to.
 #[cfg(feature = "cache")]
 const STATEMENT_CACHE_DEFAULT_CAPACITY: usize = 16;

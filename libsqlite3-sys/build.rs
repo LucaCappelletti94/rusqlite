@@ -194,7 +194,11 @@ mod build_bundled {
             .flag("-DSQLITE_ENABLE_FTS3_PARENTHESIS")
             .flag("-DSQLITE_ENABLE_FTS5")
             .flag("-DSQLITE_ENABLE_JSON1")
-            .flag("-DSQLITE_ENABLE_LOAD_EXTENSION=1")
+            .flag(if cfg!(feature = "omit_load_extension") {
+                "-DSQLITE_OMIT_LOAD_EXTENSION"
+            } else {
+                "-DSQLITE_ENABLE_LOAD_EXTENSION=1"
+            })
             .flag("-DSQLITE_ENABLE_RTREE")
             .flag("-DSQLITE_ENABLE_STAT4")
             .flag("-DSQLITE_SOUNDEX")
