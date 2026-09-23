@@ -57,6 +57,8 @@ bundled-sqlcipher-vendored-openssl = [
     "libsqlite3-sys?/bundled-sqlcipher-vendored-openssl",
     "bundled-sqlcipher",
 ]
+# Use bundled SQLite3 Multiple Ciphers instead of SQLite
+bundled-sqlite3mc = ["libsqlite3-sys?/bundled-sqlite3mc", "sqlite-wasm-rs?/sqlite3mc", "bundled"]
 buildtime_bindgen = ["libsqlite3-sys?/buildtime_bindgen", "sqlite-wasm-rs?/bindgen"]
 # sqlite3_limit
 limits = []

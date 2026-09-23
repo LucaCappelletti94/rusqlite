@@ -2540,4 +2540,14 @@ mod test {
 
         Ok(())
     }
+
+    #[cfg(feature = "bundled-sqlite3mc")]
+    #[test]
+    fn test_bundled_sqlite3mc_is_active() -> Result<()> {
+        let db = checked_memory_handle();
+        // Only SQLite3MC registers this function, so plain SQLite fails here.
+        let version: String = db.one_column("SELECT sqlite3mc_version()", [])?;
+        assert!(version.starts_with("SQLite3 Multiple Ciphers"), "{version}");
+        Ok(())
+    }
 }

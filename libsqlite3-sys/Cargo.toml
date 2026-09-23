@@ -24,6 +24,8 @@ bundled-sqlcipher-vendored-openssl = [
     "bundled-sqlcipher",
     "openssl-sys/vendored",
 ]
+# Use bundled SQLite3 Multiple Ciphers sources from the sqlite3mc-src crate
+bundled-sqlite3mc = ["bundled", "dep:sqlite3mc-src"]
 buildtime_bindgen = ["bindgen", "pkg-config", "vcpkg"]
 # Use SQLCipher instead of SQLite
 sqlcipher = []
@@ -56,6 +58,7 @@ bindgen = { version = "0.73", optional = true, default-features = false, feature
 pkg-config = { version = "0.3.19", optional = true }
 cc = { version = "1.2.27", optional = true }
 vcpkg = { version = "0.2.15", optional = true }
+sqlite3mc-src = { version = "=205.1.0", optional = true }
 # for loadable_extension:
 prettyplease = { version = "0.3.0", optional = true }
 # like bindgen
