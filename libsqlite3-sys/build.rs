@@ -140,7 +140,7 @@ mod build_bundled {
         #[cfg(feature = "bundled-sqlcipher")]
         let (include_dir, source) = {
             let dir = sqlcipher_src::source_dir();
-            (dir.to_owned(), dir.join(sqlcipher_src::AMALGAMATION_FILE))
+            (dir.to_owned(), dir.join(sqlcipher_src::SOURCE_FILE))
         };
         #[cfg(not(feature = "bundled-sqlcipher"))]
         let (include_dir, source) = (
