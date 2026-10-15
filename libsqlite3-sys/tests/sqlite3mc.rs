@@ -121,18 +121,18 @@ mod sqlite3mc {
         }
     }
 
-    /// `sqlite3mc-src = "205.1"` promises SQLite3MC 2.5, patch 1 or later, and one SQLite throughout.
+    /// `sqlite3mc-src = "206.1"` promises SQLite3MC 2.6, patch 1 or later, and one SQLite throughout.
     #[test]
-    fn links_sqlite3mc_2_5_and_one_sqlite() {
+    fn links_sqlite3mc_2_6_and_one_sqlite() {
         let mc = unsafe { ffi::sqlite3mc_version() };
         assert!(!mc.is_null());
         let mc = unsafe { CStr::from_ptr(mc) }.to_str().unwrap().to_owned();
         let patch: u32 = mc
-            .strip_prefix("SQLite3 Multiple Ciphers 2.5.")
-            .unwrap_or_else(|| panic!("{mc} is not SQLite3MC 2.5"))
+            .strip_prefix("SQLite3 Multiple Ciphers 2.6.")
+            .unwrap_or_else(|| panic!("{mc} is not SQLite3MC 2.6"))
             .parse()
             .unwrap();
-        assert!(patch >= 1, "{mc} predates the required 2.5.1");
+        assert!(patch >= 1, "{mc} predates the required 2.6.1");
 
         let lib = unsafe { CStr::from_ptr(ffi::sqlite3_libversion()) }
             .to_str()
